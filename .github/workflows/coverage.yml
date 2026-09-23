@@ -18,6 +18,12 @@ jobs:
       # https://github.com/actions/checkout
       - uses: actions/checkout@v4
 
+      # required by the backups tests, through @vates/fuse-vhd
+      - name: Install packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfuse2
+
       # https://turbo.build/repo/docs/guides/ci-vendors/github-actions#caching-with-github-actionscache
       - name: Cache Turbo
         uses: actions/cache@v4
