@@ -1,0 +1,8 @@
+{
+  "all": true,
+  "src": ["dist"],
+  "include": ["dist/**"],
+  "exclude": ["dist/**/*.test.mjs", "dist/**/index.mjs"],
+  "reporter": ["text", "text-summary", "lcov", "html"],
+  "reportDir": "coverage"
+}
