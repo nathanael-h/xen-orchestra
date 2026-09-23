@@ -1,0 +1,93 @@
+name: Coverage
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  xo-server:
+    runs-on: ubuntu-latest
+    env:
+      TURBO_TELEMETRY_DISABLED: 1
+    steps:
+      # https://github.com/actions/checkout
+      - uses: actions/checkout@v4
+
+      # required by the backups tests, through @vates/fuse-vhd
+      - name: Install packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libfuse2
+
+      # https://turbo.build/repo/docs/guides/ci-vendors/github-actions#caching-with-github-actionscache
+      - name: Cache Turbo
+        uses: actions/cache@v4
+        with:
+          path: '.turbo'
+          key: ${{ runner.os }}-turbo-coverage-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-coverage-
+
+      # https://github.com/actions/setup-node
+      - name: Setup Node environment
+        uses: actions/setup-node@v4
+        with:
+          node-version: '>=22.12'
+          cache: 'yarn'
+
+      - name: Install project dependencies
+        run: yarn
+
+      - name: Build xo-server
+        run: yarn turbo run build --filter xo-server
+
+      - name: Unit tests with coverage
+        working-directory: packages/xo-server
+        run: |
+          set -o pipefail
+          yarn -s test:coverage 2>&1 | tee coverage.log
+
+      - name: Generate coverage report
+        if: ${{ !cancelled() }}
+        working-directory: packages/xo-server
+        run: |
+          {
+            echo '## xo-server unit test coverage'
+            echo
+            echo '```'
+            sed -n '/^=* Coverage summary =*$/,/^=*$/p' coverage.log
+            echo '```'
+            echo
+            echo '<details><summary>Coverage by file</summary>'
+            echo
+            echo '```'
+            awk '/^-+\|/ { table = 1 } /^=* Coverage summary/ { table = 0 } table' coverage.log
+            echo '```'
+            echo
+            echo '</details>'
+            echo
+            echo "_Commit ${{ github.event.pull_request.head.sha || github.sha }} — full HTML report in the \`xo-server-coverage\` artifact._"
+          } > coverage-report.md
+          cat coverage-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      # https://github.com/marocchino/sticky-pull-request-comment
+      - name: Comment on the pull request
+        if: ${{ !cancelled() && github.event_name == 'pull_request' }}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: xo-server-coverage
+          path: packages/xo-server/coverage-report.md
+
+      # https://github.com/actions/upload-artifact
+      - name: Upload coverage report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: xo-server-coverage
+          path: packages/xo-server/coverage/
+          if-no-files-found: ignore
