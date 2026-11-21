@@ -8,6 +8,17 @@
 1. Pour chaque outil, une page **« Getting started » pas à pas**, en anglais, très didactique.
 2. **Centraliser** la doc utilisateur sur le site Docusaurus de `docs/` (servi sur `docs.xen-orchestra.com`) et **supprimer les doublons** dans les dépôts.
 
+## 1bis. Décisions prises (2026-11-21)
+
+| Sujet | Décision |
+| --- | --- |
+| URL cible | `docs.xen-orchestra.com` |
+| CCM, CSI, CAPI | **Pas encore couverts par les souscriptions de support Vates.** Ils feront partie de **VMK**, bientôt en *tech preview* (<https://cdn.vates.tech/vmk/>). → **Priorité basse**, regroupés dans une section dédiée et marqués *tech preview* |
+| CAPI / readthedocs | **On ne touche pas** à `vates-capi.readthedocs.io` pour l'instant : pas de migration, la doc XO se contente d'une page de présentation qui y renvoie |
+| Phase 4 (alléger les README des dépôts `vatesfr/*`) | **Oui**, dans le périmètre |
+| Pulumi | **Onglets multi-langages** (TypeScript, Python, Go, C#, YAML) |
+| Validation | Pas d'environnement de test réel ; mock [`vatesfr/xo-api-sim`](https://github.com/vatesfr/xo-api-sim) disponible (voir §8) |
+
 ## 2. Cartographie actuelle
 
 Légende : ✅ complet · 🟡 partiel / à reprendre · ❌ absent · ⚠️ obsolète
@@ -68,6 +79,8 @@ Règle : un fait = un seul endroit. Les pages XO **renvoient** à la référence
 
 ## 4. Arborescence cible (sidebar « Automation & API »)
 
+> CCM, CSI et CAPI sont regroupés sous **« Kubernetes (VMK, tech preview) »**. Chaque page de cette section commence par une admonition commune *tech preview / not covered by Vates support subscriptions yet* (composant MDX partagé, pour la retirer en un seul endroit à la GA).
+
 ```
 Automation & API
 ├── Overview: choose your automation tool        (nouveau — tableau « quel outil pour quoi »)
@@ -75,34 +88,22 @@ Automation & API
 ├── REST API · MCP                               (existant, inchangé)
 ├── Infrastructure as Code
 │   ├── Terraform / OpenTofu                     (existant, à rafraîchir)
-│   ├── Pulumi                                   (existant, à rafraîchir + onglets Python/Go)
+│   ├── Pulumi                                   (existant, à rafraîchir + onglets TS/Python/Go/C#/YAML)
 │   └── Packer                                   (à réécrire en vrai pas-à-pas)
 ├── Scripting & configuration management
 │   ├── Ansible dynamic inventory                (existant)
 │   ├── PowerShell module                        (existant, à rafraîchir)
 │   └── Go SDK                                   (nouveau)
-└── Kubernetes & cloud native
-    ├── Overview (recipe vs Cluster API, rôle du CCM et du CSI, schéma)   (nouveau)
-    ├── Kubernetes recipe (MicroK8s)             (existant, section CCM allégée → lien)
-    ├── Cloud Controller Manager
-    │   ├── Getting started                      (nouveau, depuis docs/install.md)
-    │   ├── Configuration                        (depuis README)
-    │   ├── Node out-of-service                  (migré)
-    │   └── FAQ & troubleshooting                (migré)
-    ├── CSI driver
-    │   ├── Getting started (Helm)               (nouveau, depuis install*.md)
-    │   ├── Provisioning volumes (usage)         (migré)
-    │   ├── Topology & placement                 (migré)
-    │   ├── Upgrading (migrations)               (migré)
-    │   └── Technical references                 (migré)
-    └── Cluster API (CAPI)
-        ├── Concepts                             (migré, 4 pages → 1 ou 2)
-        ├── Getting started (prérequis + install + quickstart)  (migré/réécrit)
-        ├── Tutorial: a cluster from A to Z      (migré)
-        ├── Guides: kubeadm, Talos, Rancher, Vates Kube OS, ClusterClass, IPAM, VIP, networking, SSH keys, VM naming  (migrés)
-        ├── Operations: upgrading, troubleshooting  (migrés)
-        └── Reference: CRDs, templates, bootstrap   (migré, ou lien si on garde readthedocs pour la référence)
+├── Kubernetes recipe (MicroK8s)                 (existant, supporté ; section CCM allégée → lien)
+└── Kubernetes (VMK, tech preview)               (priorité basse)
+    ├── Overview: VMK components (recipe vs CAPI, rôle CCM / CSI, schéma)  (nouveau)
+    ├── Cloud Controller Manager — Getting started   (nouveau, depuis docs/install.md du dépôt)
+    ├── CSI driver — Getting started (Helm)          (nouveau, depuis install*.md du dépôt)
+    └── Cluster API — Overview                       (nouveau, court : ce que c'est, prérequis côté XO,
+                                                      puis lien vers vates-capi.readthedocs.io — pas de migration)
 ```
+
+Les pages secondaires CCM et CSI (configuration, node out-of-service, usage, topology, migrations, références) **restent dans les dépôts** tant que VMK est en tech preview ; les getting started XO y renvoient. On réévaluera leur migration à la GA de VMK.
 
 ## 5. Gabarit d'une page « Getting started »
 
@@ -123,24 +124,42 @@ Composants Docusaurus existants réutilisés : `<Terminal>`, `<UiShot>`, `<UiDet
 
 | # | Page | Source principale | Priorité |
 | --- | --- | --- | --- |
-| 1 | Kubernetes & cloud native — Overview | synthèse | Haute |
-| 2 | CCM — Getting started | CCM `README.md`, `docs/install.md` | Haute |
-| 3 | CSI — Getting started | CSI `docs/install.md`, `install-helm.md` | Haute |
-| 4 | CAPI — Getting started (+ migration du site) | CAPI `docs/getting-started/**` | Haute |
-| 5 | Go SDK — Getting started | Go SDK `README.md`, `docs/v2/01-overview.md`, `examples/` | Haute |
-| 6 | Packer — vrai pas-à-pas (Debian/Ubuntu ISO → template utilisable par Terraform) | Packer `README.md`, `examples/` | Moyenne |
-| 7 | Authenticate your tools (API tokens) | `restapi.md#authentication` + recettes | Moyenne |
-| 8 | Overview: choose your automation tool | synthèse | Moyenne |
-| 9 | CCM / CSI / CAPI — pages secondaires (config, usage, topology, guides, ops, migrations) | dépôts | Moyenne |
-| 10 | Rafraîchissement versions Terraform / Packer / PowerShell / Pulumi | tags | Basse (rapide) |
-| 11 | Allègement des README + redirection readthedocs | dépôts `vatesfr/*` | Après publication |
+| 1 | Authenticate your tools (API tokens) — page partagée | `restapi.md#authentication` + recettes | Haute |
+| 2 | Overview: choose your automation tool | synthèse | Haute |
+| 3 | Go SDK — Getting started (v2 REST, mention v1) | Go SDK `README.md`, `docs/v2/01-overview.md`, `examples/` | Haute |
+| 4 | Packer — vrai pas-à-pas (Debian/Ubuntu ISO → template utilisable par Terraform) | Packer `README.md`, `examples/` | Haute |
+| 5 | Pulumi — refonte avec onglets TS / Python / Go / C# / YAML | page XO + `docs/_index.md` du dépôt | Haute |
+| 6 | Rafraîchissement Terraform (0.41.x), PowerShell (1.1.0-beta), Packer (0.12) + dédoublonnage | tags | Haute (rapide) |
+| 7 | Gabarit getting started appliqué aux pages existantes (Terraform, Ansible, PowerShell) | pages XO | Moyenne |
+| 8 | Kubernetes (VMK, tech preview) — Overview | synthèse + page VMK | Basse |
+| 9 | CCM — Getting started | CCM `README.md`, `docs/install.md` | Basse |
+| 10 | CSI — Getting started | CSI `docs/install.md`, `install-helm.md` | Basse |
+| 11 | CAPI — page de présentation + lien readthedocs | CAPI `README.md`, `docs/concept/*` | Basse |
+| 12 | Allègement des README des dépôts (phase 4) | dépôts `vatesfr/*` | Après publication |
 
-## 7. Phasage proposé
+## 7. Phasage
 
-1. **Phase 0 — socle** : nouvelle arborescence (sous-catégories), page « Authenticate your tools », gabarit getting started, overview Kubernetes.
-2. **Phase 1 — Kubernetes** : CCM, CSI, CAPI getting started (c'est là qu'il n'y a rien aujourd'hui).
-3. **Phase 2 — DevOps** : Go SDK, Packer pas-à-pas, rafraîchissement Terraform / Pulumi / PowerShell, dédoublonnage.
-4. **Phase 3 — migration des pages secondaires** CCM / CSI / CAPI.
-5. **Phase 4 — dépôts** : PR dans chaque dépôt `vatesfr/*` pour réduire README/`docs/` à un renvoi, et redirection de vates-capi.readthedocs.io.
+1. **Phase 0 — socle** : sous-catégories de la sidebar, page « Authenticate your tools », page overview des outils, composant d'admonition *tech preview*, gabarit getting started.
+2. **Phase 1 — DevOps (outils supportés)** : Go SDK, Packer pas-à-pas, Pulumi multi-langages, rafraîchissement Terraform / PowerShell / Ansible, suppression des doublons sur le site XO.
+3. **Phase 2 — Kubernetes (VMK, tech preview)** : overview, getting started CCM et CSI, page CAPI → readthedocs ; `kubernetes.md` (recette) allégée de la partie CCM.
+4. **Phase 3 — dépôts `vatesfr/*`** : une PR par dépôt pour réduire README / `docs/` utilisateur à un renvoi vers `docs.xen-orchestra.com`, en gardant la référence générée (registries, chart Helm, godoc) et la doc contributeur. **Exceptions** : CAPI (readthedocs inchangé), et pour CCM / CSI on ne supprime que ce qui est effectivement repris dans les getting started.
 
-Chaque phase = une PR séparée sur le fork, plus facile à relire.
+Chaque phase = une PR séparée.
+
+## 8. Validation des pas-à-pas
+
+Pas d'environnement réel. Le mock [`vatesfr/xo-api-sim`](https://github.com/vatesfr/xo-api-sim) simule **uniquement l'API REST** (`/rest/v0/*`, auth par token/cookie, création de VM via `pools/:id/actions/create_vm`, actions VM, VDI/VIF/VBD). Il ne simule **pas** l'API JSON-RPC websocket (`/api/`).
+
+| Outil | API utilisée | Testable avec le mock ? |
+| --- | --- | --- |
+| PowerShell | REST | ✅ oui (lecture, actions VM, snapshots selon couverture des handlers) |
+| Go SDK v2 | REST | ✅ oui |
+| Go SDK v1 | JSON-RPC websocket | ❌ |
+| Terraform / OpenTofu | JSON-RPC websocket (via Go SDK v1) | ❌ — `terraform init`/`validate` seulement |
+| Pulumi | idem Terraform (bridge) | ❌ — `pulumi preview` jusqu'à l'auth seulement |
+| Ansible inventory | JSON-RPC websocket | ❌ |
+| Packer | XAPI + SSH sur l'hôte XCP-ng | ❌ — `packer init`/`validate` seulement |
+| CCM / CSI / CAPI | Go SDK (v1.22 / v1.13) | ❌ (et besoin d'un cluster) |
+| Recette Kubernetes, token CCM | REST (création de token) | 🟡 seule la commande `curl` de création de token |
+
+Méthode : chaque bloc de commande est marqué dans la PR comme **vérifié (mock)**, **vérifié (syntaxe : init/validate)** ou **à valider sur une vraie infra**. Les sorties attendues non vérifiées sont reprises des dépôts (tests, exemples) et signalées aux relecteurs.
