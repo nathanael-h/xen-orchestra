@@ -13,11 +13,29 @@
 | Sujet | Décision |
 | --- | --- |
 | URL cible | `docs.xen-orchestra.com` |
-| CCM, CSI, CAPI | **Pas encore couverts par les souscriptions de support Vates.** Ils feront partie de **VMK**, bientôt en *tech preview* (<https://cdn.vates.tech/vmk/>). → **Priorité basse**, regroupés dans une section dédiée et marqués *tech preview* |
+| CCM, CSI, CAPI | **Pas encore couverts par les souscriptions de support Vates.** Ce sont les briques de **VMK** (voir §1ter). → **Priorité basse**, marqués *tech preview* |
 | CAPI / readthedocs | **On ne touche pas** à `vates-capi.readthedocs.io` pour l'instant : pas de migration, la doc XO se contente d'une page de présentation qui y renvoie |
 | Phase 4 (alléger les README des dépôts `vatesfr/*`) | **Oui**, dans le périmètre |
 | Pulumi | **Onglets multi-langages** (TypeScript, Python, Go, C#, YAML) |
 | Validation | Pas d'environnement de test réel ; mock [`vatesfr/xo-api-sim`](https://github.com/vatesfr/xo-api-sim) disponible (voir §8) |
+
+## 1ter. VMK — ce que ça change pour la doc
+
+Source : page de présentation <https://cdn.vates.tech/vmk/> (technology preview, montrée à KubeCon NA 2026).
+
+- **VMK (Vates Managed Kubernetes)** est une **fonctionnalité de Xen Orchestra 6** : une section *Kubernetes* dans l'arbre, des clusters et nœuds en objets XO de premier niveau, et un endpoint REST `/rest/v0/kubernetes`. Prérequis : XCP-ng 8.3, dernière version de XO 6, accès internet depuis les VMs des nœuds.
+- Sous le capot, c'est le Cluster API upstream : un **cluster de management** (une VM déployée par XO) fait tourner Cluster API, **cluster-api-provider-vates** et kubeadm. Chaque cluster de workload reçoit le **CCM** et le **CSI** XO.
+- **Neuf actions dans l'UI** : créer, scaler (workers / control plane 1-3-5), upgrader (rolling), télécharger le kubeconfig, supprimer, mettre en pause la réconciliation (cluster ou nœud), cordon/uncordon, drain.
+- **Limites de la preview** : un seul pool de workers, pas d'autoscaling, pas d'air-gap, pas pour la production, UI / API / comportement susceptibles de changer entre builds.
+- **Accès** : sur inscription (formulaire « Apply for the technology preview »).
+- Le code VMK **n'est pas encore dans ce dépôt** : aucune trace d'UI Kubernetes ni de route REST `kubernetes` dans `@xen-orchestra/web*`, `@xen-orchestra/rest-api` ou `xo-server`, en dehors de la recette Hub.
+
+**Conséquences sur le plan :**
+
+1. La doc Kubernetes n'est plus une simple collection d'outils DevOps. Elle s'organise autour d'un **parcours produit** : la recette MicroK8s (XO 5 Hub, supportée aujourd'hui) d'un côté, VMK (XO 6, tech preview) de l'autre.
+2. Pour la grande majorité des lecteurs, CCM, CSI et CAPI deviennent des **composants de VMK** et non des outils à installer soi-même. Sur le site XO, une page *Components* les présente (rôle, lien vers le dépôt / readthedocs pour un usage autonome). Les getting started autonomes CCM et CSI **restent dans les dépôts**, déjà bien fournis.
+3. Les pages VMK suivent l'UI de XO 6 : on ne les écrit **qu'avec un build de preview disponible**, pour avoir de vraies captures et des étapes justes. D'ici là, une seule page *VMK technology preview* : présentation, architecture, prérequis, limites, lien d'inscription.
+4. Une section *Kubernetes* de premier niveau dans la sidebar est plus juste qu'une sous-rubrique d'« Automation & API ». VMK est une fonctionnalité de l'UI, pas un outil d'automatisation.
 
 ## 2. Cartographie actuelle
 
@@ -77,9 +95,9 @@ Dernières versions (tags) : Terraform v0.41.2 · Pulumi v2.4.0-alpha.1 · Packe
 
 Règle : un fait = un seul endroit. Les pages XO **renvoient** à la référence générée ; les dépôts **renvoient** au guide XO.
 
-## 4. Arborescence cible (sidebar « Automation & API »)
+## 4. Arborescence cible
 
-> CCM, CSI et CAPI sont regroupés sous **« Kubernetes (VMK, tech preview) »**. Chaque page de cette section commence par une admonition commune *tech preview / not covered by Vates support subscriptions yet* (composant MDX partagé, pour la retirer en un seul endroit à la GA).
+### 4.1 « Automation & API » (outils DevOps)
 
 ```
 Automation & API
@@ -90,20 +108,36 @@ Automation & API
 │   ├── Terraform / OpenTofu                     (existant, à rafraîchir)
 │   ├── Pulumi                                   (existant, à rafraîchir + onglets TS/Python/Go/C#/YAML)
 │   └── Packer                                   (à réécrire en vrai pas-à-pas)
-├── Scripting & configuration management
-│   ├── Ansible dynamic inventory                (existant)
-│   ├── PowerShell module                        (existant, à rafraîchir)
-│   └── Go SDK                                   (nouveau)
-├── Kubernetes recipe (MicroK8s)                 (existant, supporté ; section CCM allégée → lien)
-└── Kubernetes (VMK, tech preview)               (priorité basse)
-    ├── Overview: VMK components (recipe vs CAPI, rôle CCM / CSI, schéma)  (nouveau)
-    ├── Cloud Controller Manager — Getting started   (nouveau, depuis docs/install.md du dépôt)
-    ├── CSI driver — Getting started (Helm)          (nouveau, depuis install*.md du dépôt)
-    └── Cluster API — Overview                       (nouveau, court : ce que c'est, prérequis côté XO,
-                                                      puis lien vers vates-capi.readthedocs.io — pas de migration)
+└── Scripting & configuration management
+    ├── Ansible dynamic inventory                (existant)
+    ├── PowerShell module                        (existant, à rafraîchir)
+    └── Go SDK                                   (nouveau)
 ```
 
-Les pages secondaires CCM et CSI (configuration, node out-of-service, usage, topology, migrations, références) **restent dans les dépôts** tant que VMK est en tech preview ; les getting started XO y renvoient. On réévaluera leur migration à la GA de VMK.
+### 4.2 Nouvelle catégorie de premier niveau « Kubernetes »
+
+```
+Kubernetes
+├── Overview: run Kubernetes on XCP-ng           (nouveau — recette MicroK8s vs VMK : statut, support,
+│                                                  version de XO, cas d'usage ; tableau de choix)
+├── Kubernetes recipe (MicroK8s, XO 5 Hub)       (déplacé depuis automation/kubernetes.md, supporté ;
+│                                                  section CCM réduite à un lien vers Components)
+├── VMK — Vates Managed Kubernetes (tech preview)
+│   ├── Technology preview overview              (nouveau, maintenant : quoi, architecture, prérequis,
+│   │                                              limites, comment rejoindre la preview)
+│   ├── Getting started: your first cluster      (plus tard, avec un build de preview : créer → kubeconfig → kubectl)
+│   ├── Manage clusters                          (plus tard : scale, upgrade, pause, delete)
+│   ├── Manage nodes                             (plus tard : cordon, drain, pause d'un nœud)
+│   └── REST API: /rest/v0/kubernetes            (plus tard, quand l'API sera stabilisée)
+└── Components (CAPI provider, CCM, CSI)         (nouveau, une page : rôle de chacun dans VMK, usage autonome
+                                                  → liens vers dépôts et vates-capi.readthedocs.io)
+```
+
+Toutes les pages VMK et *Components* commencent par une admonition commune : *Technology preview: for lab and non-critical environments, not covered by Vates support subscriptions yet*. C'est un composant MDX partagé, qu'on retire en un seul endroit au lancement du produit.
+
+Redirection Docusaurus à prévoir : `/kubernetes` (ancienne URL de `automation/kubernetes.md`) → nouvelle URL de la recette.
+
+Les getting started, guides et références de CCM, CSI et CAPI **restent dans leurs dépôts / sur readthedocs** pendant la preview. On réévaluera au lancement de VMK.
 
 ## 5. Gabarit d'une page « Getting started »
 
@@ -131,18 +165,19 @@ Composants Docusaurus existants réutilisés : `<Terminal>`, `<UiShot>`, `<UiDet
 | 5 | Pulumi — refonte avec onglets TS / Python / Go / C# / YAML | page XO + `docs/_index.md` du dépôt | Haute |
 | 6 | Rafraîchissement Terraform (0.41.x), PowerShell (1.1.0-beta), Packer (0.12) + dédoublonnage | tags | Haute (rapide) |
 | 7 | Gabarit getting started appliqué aux pages existantes (Terraform, Ansible, PowerShell) | pages XO | Moyenne |
-| 8 | Kubernetes (VMK, tech preview) — Overview | synthèse + page VMK | Basse |
-| 9 | CCM — Getting started | CCM `README.md`, `docs/install.md` | Basse |
-| 10 | CSI — Getting started | CSI `docs/install.md`, `install-helm.md` | Basse |
-| 11 | CAPI — page de présentation + lien readthedocs | CAPI `README.md`, `docs/concept/*` | Basse |
+| 8 | Kubernetes — Overview (recette vs VMK) + déplacement de la recette dans la catégorie *Kubernetes* + redirection | page VMK, `kubernetes.md` | Basse |
+| 9 | VMK — Technology preview overview | page VMK | Basse |
+| 10 | Kubernetes — Components (CAPI, CCM, CSI) | README des 3 dépôts | Basse |
+| 11 | VMK — Getting started, Manage clusters, Manage nodes, REST API | build de preview XO 6 | **Bloqué** (pas de build ni de code dans ce dépôt) |
 | 12 | Allègement des README des dépôts (phase 4) | dépôts `vatesfr/*` | Après publication |
 
 ## 7. Phasage
 
 1. **Phase 0 — socle** : sous-catégories de la sidebar, page « Authenticate your tools », page overview des outils, composant d'admonition *tech preview*, gabarit getting started.
 2. **Phase 1 — DevOps (outils supportés)** : Go SDK, Packer pas-à-pas, Pulumi multi-langages, rafraîchissement Terraform / PowerShell / Ansible, suppression des doublons sur le site XO.
-3. **Phase 2 — Kubernetes (VMK, tech preview)** : overview, getting started CCM et CSI, page CAPI → readthedocs ; `kubernetes.md` (recette) allégée de la partie CCM.
-4. **Phase 3 — dépôts `vatesfr/*`** : une PR par dépôt pour réduire README / `docs/` utilisateur à un renvoi vers `docs.xen-orchestra.com`, en gardant la référence générée (registries, chart Helm, godoc) et la doc contributeur. **Exceptions** : CAPI (readthedocs inchangé), et pour CCM / CSI on ne supprime que ce qui est effectivement repris dans les getting started.
+3. **Phase 2 — Kubernetes** : catégorie *Kubernetes*, overview recette vs VMK, déplacement de la recette (+ redirection), page *VMK technology preview*, page *Components*.
+4. **Phase 2bis — VMK pas-à-pas** (quand un build de preview est disponible) : getting started, gestion des clusters et des nœuds, API REST.
+5. **Phase 3 — dépôts `vatesfr/*`** : une PR par dépôt pour réduire README / `docs/` utilisateur à un renvoi vers `docs.xen-orchestra.com`, en gardant la référence générée (registries, chart Helm, godoc) et la doc contributeur. **Exceptions** : CAPI (readthedocs inchangé) et CCM / CSI (leur doc reste dans les dépôts pendant la preview : on ajoute seulement un lien « Part of VMK » vers la doc XO).
 
 Chaque phase = une PR séparée.
 
@@ -160,6 +195,7 @@ Pas d'environnement réel. Le mock [`vatesfr/xo-api-sim`](https://github.com/vat
 | Ansible inventory | JSON-RPC websocket | ❌ |
 | Packer | XAPI + SSH sur l'hôte XCP-ng | ❌ — `packer init`/`validate` seulement |
 | CCM / CSI / CAPI | Go SDK (v1.22 / v1.13) | ❌ (et besoin d'un cluster) |
+| VMK (`/rest/v0/kubernetes`) | REST | ❌ pas d'endpoint dans le mock aujourd'hui ; à ajouter au mock si on documente l'API |
 | Recette Kubernetes, token CCM | REST (création de token) | 🟡 seule la commande `curl` de création de token |
 
 Méthode : chaque bloc de commande est marqué dans la PR comme **vérifié (mock)**, **vérifié (syntaxe : init/validate)** ou **à valider sur une vraie infra**. Les sorties attendues non vérifiées sont reprises des dépôts (tests, exemples) et signalées aux relecteurs.
