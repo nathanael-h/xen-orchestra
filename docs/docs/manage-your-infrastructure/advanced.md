@@ -380,7 +380,7 @@ With just a few clicks, you can launch a complete multi-VM environment, where al
 
 Recipes are currently available for:
 
-- [Kubernetes clusters](../automation/kubernetes.md)
+- [Kubernetes clusters](../kubernetes/microk8s-recipe.md)
 - EasyVirt DC Scope (an infrastructure monitoring and optimization solution) 
 - EasyVirt DC NetScope (a network observability and traffic analysis solution)
 

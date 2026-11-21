@@ -1,0 +1,9 @@
+{
+  "label": "Kubernetes",
+  "position": 10.5,
+  "link": {
+    "type": "generated-index",
+    "slug": "/category/kubernetes",
+    "description": "Run Kubernetes clusters on your XCP-ng pools: the MicroK8s recipe, supported today, or VMK, Vates Managed Kubernetes, in technology preview."
+  }
+}

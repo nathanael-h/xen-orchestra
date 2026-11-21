@@ -414,7 +414,7 @@ In Xen Orchestra, you can filter to see which VMs are in which mode:
 You can use containers (such as Docker) inside your VMs. To know more on installing Docker inside a VM, check out the official [Docker documentation](https://docs.docker.com/).
 
 :::tip
-You can also run containers using Kubernetes, using the dedicated [Kubernetes recipe](https://docs.vates.tech/devops-tools/kubernetes).
+You can also run containers using Kubernetes, using the dedicated [Kubernetes recipe](../kubernetes/microk8s-recipe.md).
 :::
 
 ### VM CPU priority

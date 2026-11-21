@@ -1,10 +1,16 @@
 ---
-sidebar_position: 2
+sidebar_position: 1
+sidebar_label: Kubernetes recipe (MicroK8s)
+description: 'Deploy a MicroK8s Kubernetes cluster on XCP-ng in a few clicks with the Kubernetes recipe of the Xen Orchestra 5 Hub.'
 ---
 
 # Deploy Kubernetes with recipes
 
 ## Introduction
+
+:::info Looking for managed clusters in Xen Orchestra 6?
+This page covers the Kubernetes **recipe** of the XO 5 Hub, which deploys a cluster once. For clusters you create, scale and upgrade from Xen Orchestra 6, see [VMK, Vates Managed Kubernetes](vmk.md) (technology preview).
+:::
 
 Xen Orchestra includes a Kubernetes cluster [recipe](../manage-your-infrastructure/advanced.md#recipes) that provides a simple way to deploy an official Kubernetes distribution called **MicroK8s** (maintained by Canonical).
 
@@ -20,7 +26,7 @@ If you need to adjust the Calico setup, check the [MicroK8s documentation](https
 
 #### Configure the pod CIDR
 
-Since version 5.113 of Xen Orchestra, the pod and service CIDR can be customized via the recipe form. There is no need to perform manual configuration to change them. See [Deployment steps](./kubernetes.md#deployment-steps).
+Since version 5.113 of Xen Orchestra, the pod and service CIDR can be customized via the recipe form. There is no need to perform manual configuration to change them. See [Deployment steps](#deployment-steps).
 
 :::note
 The default CIDR for pods is `10.1.0.0/16`. All pods are assigned an IP address in that range.
@@ -38,7 +44,7 @@ This recipe automatically deploys the [Xen Orchestra Cloud Controller Manager](h
 
 The [CCM repository](https://github.com/vatesfr/xenorchestra-cloud-controller-manager) is the source of truth for its features, configuration and standalone installation (manifests and Helm chart).
 
-For the CCM to function properly, the Xen Orchestra instance must be reachable by the cluster nodes (VMs) via either an FQDN or IP address (see [Deployment steps](./kubernetes.md#deployment-steps)).
+For the CCM to function properly, the Xen Orchestra instance must be reachable by the cluster nodes (VMs) via either an FQDN or IP address (see [Deployment steps](#deployment-steps)).
 
 The recipe automatically generates an API token for the current user with a validity of 6 months.
 
@@ -102,7 +108,7 @@ Make sure your infrastructure meets these requirements:
    1. Select a pool where you want to deploy your cluster.
    2. Select a storage repository, a network and a Kubernetes version.
    3. Enter a name for your cluster.\
-      The name will be used to tag VMs (see [VM tagging](./kubernetes.md#vm-tagging)).
+      The name will be used to tag VMs (see [VM tagging](#vm-tagging)).
    4. Define the number of worker nodes.
    5. Choose the fault tolerance level for the control plane, which sets the number of control plane nodes (three or more enables high availability).
    6. Define the FQDN or IP address that the Cloud Controller Manager (CCM) will use to reach this Xen Orchestra instance.\
