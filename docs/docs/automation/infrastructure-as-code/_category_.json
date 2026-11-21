@@ -1,0 +1,9 @@
+{
+  "label": "Infrastructure as Code",
+  "position": 5,
+  "link": {
+    "type": "generated-index",
+    "slug": "/category/automation/infrastructure-as-code",
+    "description": "Describe your VMs and templates in code, then let Terraform, OpenTofu, Pulumi or Packer create them."
+  }
+}

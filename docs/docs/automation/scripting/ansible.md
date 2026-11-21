@@ -1,5 +1,7 @@
 ---
+slug: /automation/ansible
 sidebar_position: 1
+description: 'Let Ansible discover your Xen Orchestra VMs automatically with the community.general.xen_orchestra dynamic inventory plugin.'
 ---
 
 # Ansible dynamic inventory
@@ -12,12 +14,12 @@ Dynamic inventory is a powerful Ansible feature that discovers the hosts to mana
 With dynamic inventory, there is no need to manually maintain static inventory files. Your VMs are automatically discovered and classified into groups based on their properties.
 :::
 
-## Prerequisites {#installing-prerequisites}
+## Before you start {#installing-prerequisites}
 
-- a running **Xen Orchestra** instance connected to an **XCP-ng** pool
-- Ansible with the `community.general` collection, version 4.1.0 or newer (the version that introduced the plugin)
-- the `websocket-client` Python library, version 1.0.0 or newer (the plugin talks to the XO JSON-RPC API over a websocket)
-- an XO **user account**: this plugin authenticates with a username and password (it does not support API tokens)
+- [ ] A running **Xen Orchestra** instance connected to an **XCP-ng** pool.
+- [ ] Ansible with the `community.general` collection, version 4.1.0 or newer (the version that introduced the plugin).
+- [ ] The `websocket-client` Python library, version 1.0.0 or newer (the plugin talks to the XO JSON-RPC API over a websocket).
+- [ ] An XO **user account**: this plugin authenticates with a username and password (it does not support API tokens). Prefer a dedicated, read-only user: see [Authenticate your tools](../authentication.md#tokens-or-passwords).
 
 <Terminal shell title="install the requirements and check the plugin is available">{`
 ansible-galaxy collection install community.general

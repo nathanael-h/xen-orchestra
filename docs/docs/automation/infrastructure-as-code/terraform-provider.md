@@ -1,8 +1,10 @@
 ---
-sidebar_position: 8
+slug: /automation/terraform-provider
+sidebar_position: 1
+description: 'Deploy and update a VM on Xen Orchestra with the Terraform or OpenTofu provider, step by step.'
 ---
 
-# Terraform provider
+# Terraform / OpenTofu provider
 
 ## Introduction
 
@@ -18,12 +20,12 @@ This guide works with both **Terraform** and **OpenTofu**, the community-driven 
 Terraform's two-step workflow (`plan` then `apply`) gives you full control: you preview every change before applying it, for safe and predictable deployments.
 :::
 
-## Prerequisites
+## Before you start {#prerequisites}
 
-- a running **Xen Orchestra** instance (5.50.1 or newer) connected to an **XCP-ng** pool
-- **Terraform** or **OpenTofu** installed on your workstation
-- a VM **template** with cloud-init support
-- an XO **user account** or **API token** for the provider to authenticate with
+- [ ] A running **Xen Orchestra** instance connected to an **XCP-ng** pool.
+- [ ] **Terraform** or **OpenTofu** installed on your workstation.
+- [ ] A VM **template** with cloud-init support.
+- [ ] An **API token**: see [Authenticate your tools](../authentication.md).
 
 ### Installing Terraform {#installing-terraform}
 
@@ -36,8 +38,9 @@ Terraform needs a starting point to create a VM: a template that already contain
 :::info
 We recommend the pre-built cloud-init-ready templates from the **XOA Hub** (Debian, Ubuntu, and others) for optimal results. For more information about templates:
 
-- [Creating VM templates](https://docs.xen-orchestra.com/vm-templates#creating-templates)
-- [Cloud-init and Cloudbase-init](https://docs.xen-orchestra.com/vm-templates#cloud-init-and-cloudbase-init)
+- [Creating VM templates](../../manage-your-infrastructure/infrastructure/vm-templates.md#creating-templates)
+- [Cloud-init and Cloudbase-init](../../manage-your-infrastructure/infrastructure/vm-templates.md#cloud-init-and-cloudbase-init)
+- [Build your own template with Packer](./packer-provider.md)
 - [Windows templates with Cloudbase-init](https://xen-orchestra.com/blog/windows-templates-with-cloudbase-init-step-by-step-guide-best-practices/)
 :::
 
@@ -51,17 +54,17 @@ terraform {
   required_providers {
     xenorchestra = {
       source  = "vatesfr/xenorchestra"
-      version = "~> 0.40"
+      version = "~> 0.41"
     }
   }
 }
 ```
 
 :::info
-Version `0.40.0` is the latest at the time of writing. Check the [registry page](https://registry.terraform.io/providers/vatesfr/xenorchestra/latest) for the current version and release notes.
+Version `0.41` is the latest at the time of writing. Check the [registry page](https://registry.terraform.io/providers/vatesfr/xenorchestra/latest) for the current version and release notes.
 :::
 
-Then initialize your working directory:
+Then initialize your working directory (with OpenTofu, replace `terraform` with `tofu` in every command of this guide):
 
 <Terminal shell title="download the provider and set up the working directory">{`
 terraform init
@@ -73,24 +76,11 @@ Terraform downloads the provider from the registry and ends with `Terraform has 
 
 The provider talks to the XO API over a websocket connection (`ws://`, or `wss://` behind TLS) and supports two methods: an **API token** (recommended) or a **username and password**. When a token is provided, it takes precedence and the username and password are ignored.
 
-:::tip
-Any XO user can create their own API token: see [REST API authentication](restapi.md#authentication) for how to create one.
-:::
-
 :::warning
 Never store credentials directly in your code. The recommended method is to use environment variables.
 :::
 
-Create a file `~/.xoa` in your home directory:
-
-```bash
-# ~/.xoa
-export XOA_URL=wss://your-xo-hostname
-export XOA_TOKEN=YOUR_TOKEN
-# or, with a username and password:
-# export XOA_USER=YOUR_USERNAME
-# export XOA_PASSWORD=YOUR_PASSWORD
-```
+Create a dedicated API token and store it in a `~/.xoa` file, as explained in [Authenticate your tools](../authentication.md). The file sets `XOA_URL` (starting with `wss://`) and `XOA_TOKEN`, which the provider reads automatically (or `XOA_USER` and `XOA_PASSWORD` if you use a username and password).
 
 Then, before running Terraform, load these variables into your terminal session:
 
@@ -222,6 +212,16 @@ This time, Terraform detects that the resource already exists and needs to be **
 <UiShot light="/img/xo5/terraform-vm-network-single.png" alt="Before the change: the VM's Network tab shows a single interface" url="https://your-xo/#/vms/…/network" />
 
 <UiShot light="/img/xo5/terraform-vm-network-dual.png" alt="After terraform apply: a second VIF appeared on the VM" url="https://your-xo/#/vms/…/network" />
+
+## Clean up
+
+When you no longer need the tutorial VM, let Terraform remove everything it created:
+
+<Terminal shell title="destroy the resources managed by this configuration">{`
+terraform destroy
+`}</Terminal>
+
+Terraform lists what it is about to delete (`Plan: 0 to add, 0 to change, 1 to destroy.`) and asks for confirmation. The pool, template, storage and network, read through `data` blocks, are never touched.
 
 ## Debugging and logs
 

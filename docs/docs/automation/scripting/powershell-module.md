@@ -1,5 +1,7 @@
 ---
-sidebar_position: 5
+slug: /automation/powershell-module
+sidebar_position: 2
+description: 'Install the xo-powershell module, connect to Xen Orchestra with an API token, and script your infrastructure through the PowerShell pipeline.'
 ---
 
 # PowerShell module
@@ -12,17 +14,24 @@ Xen Orchestra (XO) is a powerful tool for managing XCP-ng and XenServer virtuali
 
 The module covers the whole infrastructure, not just VMs:
 
-| Area           | Cmdlets (examples)                                                       |
-| :------------- | :----------------------------------------------------------------------- |
-| Session        | `Connect-XoSession`, `Test-XoSession`, `Disconnect-XoSession`            |
-| VM lifecycle   | `Get-XoVm`, `Start-XoVm`, `Stop-XoVm`, `Restart-XoVm`, `Suspend-XoVm`    |
-| Snapshots      | `New-XoVmSnapshot`, `Get-XoVmSnapshot`                                   |
-| Storage        | `Get-XoSr`, `Get-XoVdi`, `Get-XoVmVdi`, `Get-XoVdiSnapshot`              |
-| Disk export    | `Export-XoVdi`, `Export-XoVdiSnapshot` (to VHD or raw)                   |
-| Infrastructure | `Get-XoServer`, `Get-XoHost`                                             |
-| Tasks          | `Get-XoTask`, `Wait-XoTask`                                              |
+| Area           | Cmdlets (examples)                                                          |
+| :------------- | :-------------------------------------------------------------------------- |
+| Session        | `Connect-XoSession`, `Test-XoSession`, `Disconnect-XoSession`               |
+| VM lifecycle   | `Get-XoVm`, `Start-XoVm`, `Stop-XoVm`, `Restart-XoVm`, `Suspend-XoVm`       |
+| Snapshots      | `New-XoVmSnapshot`, `Get-XoVmSnapshot`                                      |
+| Storage        | `Get-XoSr`, `Get-XoVdi`, `Get-XoVmVdi`, `Export-XoVdi` (to VHD or raw)      |
+| Infrastructure | `Get-XoServer`, `Get-XoPool`, `Get-XoHost`, `Get-XoNetwork`, `Get-XoPif`    |
+| Monitoring     | `Get-XoAlarm`, `Get-XoMessage`, `Get-XoPoolPatch`                           |
+| Tasks          | `Get-XoTask`, `Wait-XoTask`                                                 |
 
-For the full, current cmdlet reference, see the [xo-powershell GitHub repository](https://github.com/vatesfr/xo-powershell): it is the source of truth for the module's capabilities and options.
+Most `Get-` cmdlets have a matching `Set-` cmdlet to change properties. The module talks to the Xen Orchestra [REST API](../restapi.md), so it acts with the permissions of the token you connect with.
+
+To list every cmdlet of the version you installed, and read the help of one of them:
+
+<Terminal shell title="explore the module from PowerShell">{`
+Get-Command -Module xo-powershell
+Get-Help Get-XoVm -Full
+`}</Terminal>
 
 ## Installation and connection {#single-line-installation-and-connection}
 
@@ -33,7 +42,7 @@ Install-Module -Name xo-powershell -AllowPrerelease
 `}</Terminal>
 
 :::note Prerequisites
-PowerShell **7.0 or later**, on Windows, Linux or macOS. Windows PowerShell 5.1 is not supported. The module is currently published as a prerelease (`1.0.0-beta`), hence the `-AllowPrerelease` flag (or `Install-PSResource -Name xo-powershell -Prerelease` with PSResourceGet).
+PowerShell **7.0 or later**, on Windows, Linux or macOS. Windows PowerShell 5.1 is not supported. The module is currently published as a **beta** prerelease, hence the `-AllowPrerelease` flag (or `Install-PSResource -Name xo-powershell -Prerelease` with PSResourceGet).
 :::
 
 Connecting to your Xen Orchestra instance is just as straightforward, requiring only the host address and an API token:
@@ -43,8 +52,20 @@ Connect-XoSession -HostName "https://your-xo-server" -Token "your-api-token"
 `}</Terminal>
 
 :::tip Obtaining the API token
-In Xen Orchestra, go to your user page and generate an authentication token. See [REST API authentication](restapi.md#authentication) for details.
+Create a dedicated API token for your scripts: see [Authenticate your tools](../authentication.md).
 :::
+
+:::warning
+Avoid writing the token in your scripts. Read it from an environment variable instead, for example `Connect-XoSession -HostName "https://your-xo-server" -Token $env:XOA_TOKEN`.
+:::
+
+Check that the session works before going further:
+
+<Terminal shell title="check the connection">{`
+Test-XoSession
+`}</Terminal>
+
+When you are done, close the session with `Disconnect-XoSession`.
 
 ## Pipeline-driven automation {#the-power-of-the-pipeline-for-advanced-automation}
 
@@ -134,4 +155,4 @@ The `xo-powershell` module is much more than just a collection of commands: it i
 - [xo-powershell on GitHub](https://github.com/vatesfr/xo-powershell) (source of truth for cmdlets and options)
 - [xo-powershell on the PowerShell Gallery](https://www.powershellgallery.com/packages/xo-powershell/)
 - [Infrastructure as Code category on the XCP-ng forum](https://xcp-ng.org/forum/category/29/infrastructure-as-code)
-- [REST API authentication](restapi.md#authentication)
+- [Authenticate your tools](../authentication.md)

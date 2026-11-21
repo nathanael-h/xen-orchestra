@@ -2,8 +2,7 @@
   "label": "Automation & API",
   "position": 10,
   "link": {
-    "type": "generated-index",
-    "slug": "/category/automation",
-    "description": "Various tools to automate your workflow in XO"
+    "type": "doc",
+    "id": "automation/overview"
   }
 }

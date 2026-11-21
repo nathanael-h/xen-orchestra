@@ -208,6 +208,10 @@ export default {
             from: ['/restapi', '/xo5/restapi'],
           },
           {
+            to: '/automation',
+            from: '/category/automation',
+          },
+          {
             to: '/automation/terraform-provider',
             from: '/xo6/terraform-provider',
           },
@@ -228,8 +232,8 @@ export default {
             from: '/xo6/powershell-module',
           },
           {
-            to: '/automation/kubernetes',
-            from: '/xo6/kubernetes',
+            to: '/kubernetes/microk8s-recipe',
+            from: ['/xo6/kubernetes', '/automation/kubernetes'],
           },
           {
             to: '/backups-and-dr/backup-types/rolling_snapshots',

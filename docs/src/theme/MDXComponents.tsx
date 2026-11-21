@@ -6,6 +6,9 @@ import UiDetail from '@site/src/components/UiDetail'
 import { CardGrid, LinkCard } from '@site/src/components/Cards'
 import HostCompatTable from '@site/src/components/HostCompat'
 import InterfaceNote from '@site/src/components/InterfaceNote'
+import TechPreview from '@site/src/components/TechPreview'
+import Tabs from '@theme/Tabs'
+import TabItem from '@theme/TabItem'
 
 export default {
   ...MDXComponents,
@@ -17,4 +20,7 @@ export default {
   LinkCard,
   HostCompatTable,
   InterfaceNote,
+  TechPreview,
+  Tabs,
+  TabItem,
 }

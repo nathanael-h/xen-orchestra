@@ -172,7 +172,7 @@ the parked standby. */}
 - **Administration**: complete control of your pools, hosts, VMs, storage and networks, from a [modern web interface](/core-concepts/coreconcepts/coreconcepts.md) or from XO 5.
 - **Backup and disaster recovery**: rolling snapshots, full and incremental backups, replication, mirroring and immutability, toward S3, NFS, SMB or Azure targets. See [Backups](/backups-and-dr/backups-in-xo6.md).
 - **Migration from VMware**: [V2V](/migrate-from-vmware/v2v-migration-guide.md) imports your ESXi VMs directly into your pools.
-- **Automation**: a [REST API](automation/restapi.md), a CLI, and first-class providers for [Terraform](automation/terraform-provider.md), [Ansible](automation/ansible.md), [Pulumi](automation/pulumi-provider.md), [Packer](automation/packer-provider.md) and [PowerShell](automation/powershell-module.md), plus [Kubernetes cluster recipes](automation/kubernetes.md).
+- **Automation**: a [REST API](automation/restapi.md), a CLI, and first-class providers for [Terraform](automation/infrastructure-as-code/terraform-provider.md), [Ansible](automation/scripting/ansible.md), [Pulumi](automation/infrastructure-as-code/pulumi-provider.md), [Packer](automation/infrastructure-as-code/packer-provider.md) and [PowerShell](automation/scripting/powershell-module.md), plus [Kubernetes cluster recipes](kubernetes/microk8s-recipe.md).
 - **Delegation**: users, groups and [RBAC](/security/user-management/rbac.md) to give each team exactly the access it needs.
 - **Scale**: one XO manages any number of pools on any number of sites, over LAN or WAN.
 
