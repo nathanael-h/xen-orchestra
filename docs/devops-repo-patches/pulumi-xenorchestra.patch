@@ -1,0 +1,77 @@
+From 372f754dad8651635b10357aa3fd99f9f8345b56 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Nathana=C3=ABl=20Hannebert?=
+ <nathanael.hannebert@vates.tech>
+Date: Sat, 21 Nov 2026 13:52:31 +0000
+Subject: [PATCH] docs: link to the getting started guide on
+ docs.xen-orchestra.com
+
+User guides now live on docs.xen-orchestra.com; keep the README short
+and point to it, to avoid duplicated and diverging instructions.
+---
+ README.md                          | 8 +++++---
+ docs/installation-configuration.md | 4 ++--
+ 2 files changed, 7 insertions(+), 5 deletions(-)
+
+diff --git a/README.md b/README.md
+index 37d3b5b..a31e275 100644
+--- a/README.md
++++ b/README.md
+@@ -4,6 +4,8 @@ The Xen Orchestra Provider lets you manage [Xen Orchestra](https://github.com/va
+ 
+ ![XO logo](./logo_xo.png)
+ 
++📖 **Getting started**: deploy your first VM in TypeScript, Python, Go, C# or YAML with the [step-by-step guide in the Xen Orchestra documentation](https://docs.xen-orchestra.com/automation/pulumi-provider).
++
+ ## Installing
+ 
+ This package is available for several languages/platforms:
+@@ -35,7 +37,7 @@ pip install pulumi-xenorchestra
+ To use from Go, use `go get` to grab the latest version of the library:
+ 
+ ```bash
+-go get github.com/vatesfr/pulumi-xenorchestra/sdk
++go get github.com/vatesfr/pulumi-xenorchestra/sdk/v2
+ ```
+ 
+ ### .NET
+@@ -54,7 +56,7 @@ The following configuration points are available for the `xenorchestra` provider
+ 
+ - `xenorchestra:url` (environment: `XOA_URL`) - the URL for the Xen Orchestra websockets endpoint. Starts with `wss://`
+ Set either:
+-- `xenorchestra:username` (environment: `XOA_USERNAME`) - the username for Xen Orchestra
++- `xenorchestra:username` (environment: `XOA_USER`) - the username for Xen Orchestra
+ - `xenorchestra:password` (environment: `XOA_PASSWORD`) - the password for Xen Orchestra
+ Or:
+ - `xenorchestra:token` (environment: `XOA_TOKEN`) - API token for Xen Orchestra
+@@ -63,7 +65,7 @@ Or:
+ 
+ ## Usage
+ 
+-See [docs](./docs/_index.md) for examples.
++See the [getting started guide](https://docs.xen-orchestra.com/automation/pulumi-provider) and the [registry examples](./docs/_index.md).
+ 
+ ## Building
+ 
+diff --git a/docs/installation-configuration.md b/docs/installation-configuration.md
+index 8740ca9..741ff23 100644
+--- a/docs/installation-configuration.md
++++ b/docs/installation-configuration.md
+@@ -36,7 +36,7 @@ The following configuration points are available for the `xenorchestra` provider
+ 
+ - `xenorchestra:url` (environment: `XOA_URL`) - the URL for the Xen Orchestra websockets endpoint. Starts with `wss://`
+ Set either:
+-- `xenorchestra:username` (environment: `XOA_USERNAME`) - the username for Xen Orchestra
++- `xenorchestra:username` (environment: `XOA_USER`) - the username for Xen Orchestra
+ - `xenorchestra:password` (environment: `XOA_PASSWORD`) - the password for Xen Orchestra
+ Or:
+ - `xenorchestra:token` (environment: `XOA_TOKEN`) - API token for Xen Orchestra
+@@ -44,5 +44,5 @@ Or:
+ - `xenorchestra:insecure` (environment: `XOA_INSECURE`) - set to any value to disable SSL verification, false by default. Only use if you are using a self-signed certificate and know what you are doing.
+ 
+ 
+-To get a token you can use the [xo-cli](https://docs.xen-orchestra.com/architecture#xo-cli-cli) or the XO GUI (under User > Authentication tokens).
++To create a token, see [Authenticate your tools](https://docs.xen-orchestra.com/automation/authentication) in the Xen Orchestra documentation. For a step-by-step guide in every language, see the [Pulumi getting started guide](https://docs.xen-orchestra.com/automation/pulumi-provider).
+ 
+-- 
+2.43.0
+

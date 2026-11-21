@@ -1,0 +1,134 @@
+From fc52732ca3397e7de5f35e36e34ec5e3131281da Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Nathana=C3=ABl=20Hannebert?=
+ <nathanael.hannebert@vates.tech>
+Date: Sat, 21 Nov 2026 13:52:31 +0000
+Subject: [PATCH] docs: link to the getting started guide on
+ docs.xen-orchestra.com
+
+User guides now live on docs.xen-orchestra.com; keep the README short
+and point to it, to avoid duplicated and diverging instructions.
+---
+ README.md | 95 ++++---------------------------------------------------
+ 1 file changed, 6 insertions(+), 89 deletions(-)
+
+diff --git a/README.md b/README.md
+index a847b7f..2c6eb13 100644
+--- a/README.md
++++ b/README.md
+@@ -2,6 +2,8 @@
+ 
+ A PowerShell module to interact with Xen Orchestra's REST API, allowing you to manage your XenServer/XCP-ng virtualization environment directly from PowerShell.
+ 
++📖 **Getting started**: install, connect and script your first operations with the [guide in the Xen Orchestra documentation](https://docs.xen-orchestra.com/automation/powershell-module).
++
+ ## Requirements
+ - PowerShell 7.0 or later
+ - Access to a Xen Orchestra instance
+@@ -39,99 +41,14 @@ Connect-XoSession -HostName "https://your-xo-server" -Token "your-api-token"
+ 
+ ## Available Commands
+ 
+-### Session Management
+-- `Test-XoSession` - Test connection to Xen Orchestra
+-- `Connect-XoSession` - Connect to Xen Orchestra (`Connect-XenOrchestra` is an alias)
+-- `Disconnect-XoSession` - Disconnect from Xen Orchestra (`Disconnect-XenOrchestra` is an alias)
+-
+-### VM Management
+-- `Get-XoVm` - Get list of VMs or a specific VM
+-- `Start-XoVm` - Start one or more VMs
+-- `Stop-XoVm` - Stop one or more VMs (use -Force for hard shutdown)
+-- `Restart-XoVm` - Restart one or more VMs (use -Force for hard reboot)
+-- `New-XoVmSnapshot` - Create VM snapshot
+-- `Get-XoVmSnapshot` - Get VM snapshots
+-- `Suspend-XoVm` - Suspend one or more VMs
+-
+-### Storage Management
+-- `Get-XoSr` - Get storage repositories
+-- `Get-XoVdi` - Get virtual disk images
+-- `Get-XoVmVdi` - Get disks attached to a VM
+-- `Export-XoVdi` - Export a VDI to a file in VHD or RAW format
+-
+-### VDI Snapshot Management
+-- `Get-XoVdiSnapshot` - Get VDI snapshots
+-- `Export-XoVdiSnapshot` - Export a VDI snapshot to a file in VHD or RAW format
+-
+-### Server Management
+-- `Get-XoServer` - Get server information
+-
+-### Host Management
+-- `Get-XoHost` - Get host information
+-
+-### Task Management
+-- `Get-XoTask` - Get task information (`Get-XoTaskDetails` is an alias)
+-- `Wait-XoTask` - Wait for task completion
+-
+-## Examples
+-
+-### Working with VMs
+-
+-List all running VMs:
+-```powershell
+-Get-XoVm -PowerState Running
+-```
+-
+-Get a specific VM:
+-```powershell
+-Get-XoVm -VmUuid "12345678-abcd-1234-abcd-1234567890ab"
+-```
++The module covers sessions, VMs and their snapshots, storage (SRs, VDIs, exports), pools, hosts, networks, tasks, alarms and more. To list every cmdlet of the installed version and read its help:
+ 
+-Start multiple VMs:
+ ```powershell
+-Get-XoVm -PowerState Halted | Start-XoVm
++Get-Command -Module xo-powershell
++Get-Help Get-XoVm -Full
+ ```
+ 
+-Create a snapshot of a VM:
+-```powershell
+-New-XoVmSnapshot -VmUuid "12345678-abcd-1234-abcd-1234567890ab" -SnapshotName "Before Update"
+-```
+-
+-### Working with Disks
+-
+-Get all disks for a VM:
+-```powershell
+-Get-XoVmVdi -VmUuid "12345678-abcd-1234-abcd-1234567890ab"
+-```
+-
+-Export a VDI to a file:
+-```powershell
+-Export-XoVdi -VdiId "a1b2c3d4" -Format vhd -OutFile "C:\exports\disk_backup.vhd"
+-```
+-
+-### Working with Servers and Hosts
+-
+-List all servers:
+-```powershell
+-Get-XoServer
+-```
+-
+-List all hosts:
+-```powershell
+-Get-XoHost
+-```
+-
+-## Pipeline Support
+-
+-Most commands support pipeline input, allowing for operations like:
+-
+-```powershell
+-Get-XoVm | Where-Object { $_.Name -like "*Test*" } | Stop-XoVm
+-```
+-
+-```powershell
+-Get-XoVm -PowerState Running | Where-Object { $_.Memory -gt 4GB } | Suspend-XoVm
+-```
++For examples, including pipeline usage, see the [PowerShell module guide](https://docs.xen-orchestra.com/automation/powershell-module).
+ 
+ ## Contributing
+ Contributions are welcome! Please feel free to submit a Pull Request.
+\ No newline at end of file
+-- 
+2.43.0
+

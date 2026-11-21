@@ -192,3 +192,24 @@ Pas d'environnement réel. Le mock [`vatesfr/xo-api-sim`](https://github.com/vat
 | Recette Kubernetes, token CCM | REST (création de token) | 🟡 seule la commande `curl` de création de token |
 
 Méthode : chaque bloc de commande est marqué dans la PR comme **vérifié (mock)**, **vérifié (syntaxe : init/validate)** ou **à valider sur une vraie infra**. Les sorties attendues non vérifiées sont reprises des dépôts (tests, exemples) et signalées aux relecteurs.
+
+## 9. Avancement (2026-11-21)
+
+| Phase | État | Commit |
+| --- | --- | --- |
+| 0 — socle | ✅ Fait : sous-catégories (URLs conservées via `slug`), page *Overview* (`/automation`, redirection depuis `/category/automation`), page *Authenticate your tools*, composant `<TechPreview />`, `Tabs`/`TabItem` globaux | `docs(automation): …` |
+| 1 — DevOps | ✅ Fait : Go SDK (nouveau), Packer (réécrit), Pulumi (5 langages en onglets), Terraform / PowerShell / Ansible rafraîchis | `docs(automation): …` |
+| 2 — Kubernetes | ✅ Fait : catégorie *Kubernetes*, recette déplacée (`/automation/kubernetes` → `/kubernetes/microk8s-recipe`), page VMK | `docs(kubernetes): …` |
+| 3 — dépôts | 🟡 Patchs prêts dans `devops-repo-patches/`, à appliquer **après** publication des pages | — |
+
+`yarn build` passe sans lien ni ancre cassés.
+
+### Ce qui a été vérifié
+
+| Page | Vérification |
+| --- | --- |
+| Go SDK | ✅ Les deux programmes exécutés contre `xo-api-sim` (liste des VMs, snapshot + attente de tâche) |
+| Pulumi | ✅ TypeScript compilé (`tsc --strict`) et Go compilé (`go vet`) avec le SDK 2.4.0 ; noms Python vérifiés par introspection du paquet 2.4.0 ; noms C# vérifiés dans les sources du SDK ; YAML non vérifié |
+| Authenticate your tools | 🟡 Endpoints REST et variables d'environnement vérifiés dans le code (XO, SDK, providers) ; parcours UI XO 5 vérifié dans le code de `xo-web`, pas à l'écran |
+| Packer | ⚠️ **À valider sur une vraie infra** : HCL dérivé de l'exemple maintenu `examples/ubuntu/ubuntu-2404.pkr.hcl`, mais `packer validate`/`build` non exécutés (binaire non téléchargeable ici) ; nom exact du `clone_template` à confirmer sur XCP-ng 8.3 |
+| Terraform, PowerShell, Ansible | Contenu existant conservé ; seules les versions, l'auth et la structure changent |

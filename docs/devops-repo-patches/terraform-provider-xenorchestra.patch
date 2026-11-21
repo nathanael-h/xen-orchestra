@@ -1,0 +1,71 @@
+From 63d74680dbacc0f63e25f12676cc64f2780fff97 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Nathana=C3=ABl=20Hannebert?=
+ <nathanael.hannebert@vates.tech>
+Date: Sat, 21 Nov 2026 13:52:31 +0000
+Subject: [PATCH] docs: link to the getting started guide on
+ docs.xen-orchestra.com
+
+User guides now live on docs.xen-orchestra.com; keep the README short
+and point to it, to avoid duplicated and diverging instructions.
+---
+ README.md | 37 +++----------------------------------
+ 1 file changed, 3 insertions(+), 34 deletions(-)
+
+diff --git a/README.md b/README.md
+index d577a80..b1ecc3e 100644
+--- a/README.md
++++ b/README.md
+@@ -4,7 +4,8 @@ This is a terraform provider for [Xen Orchestra](https://github.com/vatesfr/xen-
+ 
+ ## Docs
+ 
+-The terraform provider is documented on the terraform registry [page](https://registry.terraform.io/providers/vatesfr/xenorchestra/latest)
++- **Getting started** (step-by-step guide: install, authenticate, deploy and update a VM, debug logs): [Xen Orchestra documentation](https://docs.xen-orchestra.com/automation/terraform-provider)
++- **Reference** for every resource and data source: the [Terraform registry](https://registry.terraform.io/providers/vatesfr/xenorchestra/latest/docs)
+ 
+ General documentation about providers in terraform can be found at [the terraform documentation](https://www.terraform.io/docs/configuration/providers.html).
+ 
+@@ -16,39 +17,7 @@ If using terraform 0.12 or lower download a suitable binary from the [releases](
+ 
+ ## Debugging and Logs
+ 
+-The provider supports detailed logging for troubleshooting and debugging purposes.
+-
+-### Enable Provider Logs
+-
+-To enable debug logging, set the `TF_LOG_PROVIDER` environment variable:
+-
+-```bash
+-export TF_LOG_PROVIDER=DEBUG
+-terraform plan
+-```
+-
+-### Terraform Log Levels
+-
+-You can control the level of provider logging with the `TF_LOG_PROVIDER` environment variable:
+-
+-```bash
+-export TF_LOG_PROVIDER=DEBUG
+-terraform apply
+-```
+-
+-Valid `TF_LOG_PROVIDER` levels are: `TRACE`, `DEBUG`, `INFO`, `WARN`, `ERROR`.
+-
+-### Log to File
+-
+-To save logs to a file for analysis:
+-
+-```bash
+-export TF_LOG_PROVIDER=DEBUG
+-export TF_LOG_PATH=./terraform.log
+-terraform apply
+-```
+-
+-**Note**: Only enable debug logging when troubleshooting, as it can significantly increase log verbosity and may impact performance.
++Set `TF_LOG_PROVIDER=DEBUG` (and optionally `TF_LOG_PATH`) to get the provider logs. See [Debugging and logs](https://docs.xen-orchestra.com/automation/terraform-provider#debugging-and-logs) in the Xen Orchestra documentation.
+ 
+ ## Support
+ 
+-- 
+2.43.0
+

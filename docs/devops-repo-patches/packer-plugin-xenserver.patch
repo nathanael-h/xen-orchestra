@@ -1,0 +1,54 @@
+From f77f6bb589508cc3cd6de2059527c3fd9930303d Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Nathana=C3=ABl=20Hannebert?=
+ <nathanael.hannebert@vates.tech>
+Date: Sat, 21 Nov 2026 13:52:31 +0000
+Subject: [PATCH] docs: link to the getting started guide on
+ docs.xen-orchestra.com
+
+User guides now live on docs.xen-orchestra.com; keep the README short
+and point to it, to avoid duplicated and diverging instructions.
+---
+ README.md          | 6 ++++--
+ examples/README.md | 2 +-
+ 2 files changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/README.md b/README.md
+index 774542b..b0da34b 100644
+--- a/README.md
++++ b/README.md
+@@ -2,6 +2,8 @@
+ 
+ This builder plugin extends packer.io to support building images for XCP-ng.
+ 
++📖 **Getting started**: build your first template step by step with the [guide in the Xen Orchestra documentation](https://docs.xen-orchestra.com/automation/packer-provider).
++
+ This is a fork of the original builder since the original project was abandoned and no longer compiled with recent versions of Go or worked with Xenserver 7.6 and later.
+ 
+ It improves the original project in the following ways:
+@@ -89,8 +91,8 @@ export PACKER_LOG=1
+ 
+ # Documentation
+ 
+-For complete documentation on configuration commands, see [the
+-xenserver-iso docs](docs/builders/iso/xenserver-iso.html.markdown)
++- **Getting started**: [Packer plugin guide](https://docs.xen-orchestra.com/automation/packer-provider) in the Xen Orchestra documentation
++- **Reference** of every option: [the xenserver-iso docs](docs/builders/iso/xenserver-iso.html.markdown)
+ 
+ ## Support
+ 
+diff --git a/examples/README.md b/examples/README.md
+index 925f61e..2cf866a 100644
+--- a/examples/README.md
++++ b/examples/README.md
+@@ -2,7 +2,7 @@
+ 
+ In order for new users to get up and running with the packer builder, a few examples of building a machine image with popular distros have been created.
+ 
+-In order to see an exhaustive list of configuration options for the packer builder please see the [following documentation](../docs/builders/xenserver-iso.html.markdown). This doc will focus on the details relevant to the particular distro.
++In order to see an exhaustive list of configuration options for the packer builder please see the [following documentation](../docs/builders/iso/xenserver-iso.html.markdown). This doc will focus on the details relevant to the particular distro.
+ 
+ ### Running the examples
+ 
+-- 
+2.43.0
+

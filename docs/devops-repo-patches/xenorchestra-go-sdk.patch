@@ -1,0 +1,29 @@
+From e365aa062c497a620f95c8c729c366fdf49b6e27 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Nathana=C3=ABl=20Hannebert?=
+ <nathanael.hannebert@vates.tech>
+Date: Sat, 21 Nov 2026 13:52:31 +0000
+Subject: [PATCH] docs: link to the getting started guide on
+ docs.xen-orchestra.com
+
+User guides now live on docs.xen-orchestra.com; keep the README short
+and point to it, to avoid duplicated and diverging instructions.
+---
+ README.md | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/README.md b/README.md
+index 4d0a61b..b6406cb 100644
+--- a/README.md
++++ b/README.md
+@@ -7,6 +7,8 @@ This is a Golang module for the [XenOrchestra](https://github.com/vatesfr/xen-or
+ 
+ ## 📚 Documentation 
+ 
++📖 **Getting started**: list your VMs and run your first action with the v2 client in the [Xen Orchestra documentation](https://docs.xen-orchestra.com/automation/go-sdk).
++
+ ### v1 Documentation
+ 
+ The v1 client uses the JSON-RPC API and is primarily used in the [terraform-provider-xenorchestra](https://github.com/vatesfr/terraform-provider-xenorchestra) Terraform provider.
+-- 
+2.43.0
+
