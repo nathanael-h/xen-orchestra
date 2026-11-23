@@ -46,7 +46,7 @@ Docusaurus n'a **pas** de fonction native pour récupérer du contenu distant.
 
 Les moyens possibles :
 
-- [`docusaurus-plugin-remote-content`](https://github.com/rdilweb/docusaurus-plugin-remote-content) : v4.0.0, **dernière release en novembre 2023**, compatible Docusaurus 3. Il télécharge des fichiers listés par URL au démarrage du build, ou via une commande CLI (`noRuntimeDownloads`).
+- [`docusaurus-plugin-remote-content`](https://github.com/rdilweb/docusaurus-plugin-remote-content) : v4.0.0, **dernière release en novembre 2023**, compatible Docusaurus 3. Il télécharge des fichiers listés par URL au démarrage du build, ou via une commande CLI (`noRuntimeDownloads`). Analyse détaillée, bugs constatés et correctifs : [`remote-content-plugin/`](remote-content-plugin/README.md). En mode CLI, il peut aussi servir de moteur de téléchargement pour l'option B.
 - `@acid-info/docusaurus-remote-content` : 1.0.4-alpha, peu utilisé.
 - Un script `prebuild` maison (`git clone --sparse`), ou des sous-modules git.
 

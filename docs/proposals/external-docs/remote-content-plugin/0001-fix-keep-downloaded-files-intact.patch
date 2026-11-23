@@ -1,0 +1,386 @@
+From fc7176c4f3c7c0cc8db70a27ce4e93f779e6ef26 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Nathana=C3=ABl=20Hannebert?=
+ <nathanael.hannebert@vates.tech>
+Date: Mon, 23 Nov 2026 21:30:00 +0000
+Subject: [PATCH] fix: keep downloaded files intact, track written files, avoid
+ leaking secrets
+
+- write files as downloaded (no axios JSON parsing, which crashed
+  writeFileSync on JSON documents)
+- default performCleanup to false with noRuntimeDownloads, so builds no
+  longer delete content downloaded with the CLI
+- record written files in a manifest: cleanup handles files renamed by
+  modifyContent, and a new download removes stale files
+- accept async documents and modifyContent functions
+- accept requestConfig as a function, which Docusaurus does not serialize
+  into the client bundle (#79)
+- name the failing document in download errors
+- refuse to write outside of outDir
+---
+ CHANGELOG.md |  24 +++++++
+ README.md    |  16 +++--
+ src/index.ts | 173 +++++++++++++++++++++++++++++++++------------------
+ src/types.ts |  20 +++++-
+ 4 files changed, 164 insertions(+), 69 deletions(-)
+
+diff --git a/CHANGELOG.md b/CHANGELOG.md
+index 2510e7c..f8aed3f 100644
+--- a/CHANGELOG.md
++++ b/CHANGELOG.md
+@@ -1,5 +1,29 @@
+ # Changelog
+ 
++## Unreleased
++
++Bug fixes:
++
++-   Files are written as downloaded: JSON documents are no longer parsed by
++    axios, which made `writeFileSync` throw (`ERR_INVALID_ARG_TYPE`).
++-   `performCleanup` now defaults to `false` when `noRuntimeDownloads` is
++    `true`: `docusaurus build` no longer deletes content downloaded with the
++    CLI (and usually committed).
++-   Cleanup removes the files actually written, including files renamed by
++    `modifyContent`. The list is kept in `outDir/.remote-content-<name>.json`.
++-   Downloading again removes the files of documents that are no longer listed.
++-   `documents` can be an async function.
++-   Download errors name the failing document and source URL.
++-   Writing outside of `outDir` (e.g. a `modifyContent` filename with `..`) is
++    refused.
++
++New features:
++
++-   `requestConfig` can be a function, evaluated at download time. Unlike plain
++    values, functions are not serialized into the client bundle, so secrets
++    such as an `Authorization` header are not leaked (#79).
++-   `modifyContent` can be async.
++
+ ## v4.0.0
+ 
+ Breaking changes:
+diff --git a/README.md b/README.md
+index 640a6ec..4e4d709 100644
+--- a/README.md
++++ b/README.md
+@@ -82,7 +82,7 @@ The folder to emit the downloaded content to.
+ 
+ ### `documents`
+ 
+-(_Required_) `string[]` or `Promise<string[]>`
++(_Required_) `string[]`, `Promise<string[]>`, or a (possibly async) function returning a `string[]`
+ 
+ The documents to fetch. Must be file names (e.g. end in `.md`)
+ Following the previous example, if you had set `sourceBaseUrl` to https://example.com/content/,
+@@ -90,9 +90,9 @@ and wanted to fetch thing.md and hello.md, you would just set `documents` to `["
+ 
+ ### `performCleanup`
+ 
+-(Optional) `boolean` - default = `true`
++(Optional) `boolean` - default = `true`, or `false` when `noRuntimeDownloads` is `true`
+ 
+-If the documents downloaded should be deleted after the build is completed. Defaults to true.
++If the documents downloaded should be deleted after the build is completed.
+ 
+ ### `noRuntimeDownloads`
+ 
+@@ -102,11 +102,19 @@ If you only want to use the Docusaurus CLI to download the remote content, you s
+ 
+ ### `requestConfig`
+ 
+-(optional) [`AxiosRequestConfig`](https://axios-http.com/docs/req_config)
++(optional) [`AxiosRequestConfig`](https://axios-http.com/docs/req_config), or a (possibly async) function returning one
+ 
+ Additional configuration options for the network requests that fetch the content.
+ See the documentation for details: https://axios-http.com/docs/req_config
+ 
++> **Warning**: Docusaurus serializes plugin options into the site's JavaScript.
++> To pass a secret (for example an `Authorization` header with a token), use a
++> function, which is not serialized:
++>
++> ```js
++> requestConfig: () => ({ headers: { Authorization: `Bearer ${process.env.GITHUB_TOKEN}` } }),
++> ```
++
+ ### `modifyContent`
+ 
+ (optional) `(filename: string, content: string) => { filename?: string, content?: string }}`
+diff --git a/src/index.ts b/src/index.ts
+index 607bb56..d4da4b2 100644
+--- a/src/index.ts
++++ b/src/index.ts
+@@ -1,34 +1,30 @@
+ import type { LoadContext, Plugin } from "@docusaurus/types"
+ import axios, { AxiosRequestConfig } from "axios"
+-import { existsSync, writeFileSync, mkdirSync } from "fs"
+-import { join } from "path"
++import { existsSync, writeFileSync, mkdirSync, readFileSync } from "fs"
++import { dirname, join, relative, resolve, sep } from "path"
+ import { sync as delFile } from "rimraf"
+ import { timeIt } from "./utils"
+-import { Fetchable, ModifyContentFunction, RemoteContentPluginOptions } from "./types"
+-
+-async function runModifications(sourceBaseUrl: string, id: string, requestConfig: AxiosRequestConfig, modifyContent: ModifyContentFunction | undefined) {
+-    let content = (
+-        await axios({
+-            baseURL: sourceBaseUrl,
+-            url: id,
+-            ...requestConfig
+-        })
+-    ).data
+-    let newIdent = id
+-
+-    const called = modifyContent?.(newIdent, content)
+-
+-    let cont = called?.content
+-    if (cont && typeof cont === "string") {
+-        content = cont
++import { Fetchable, RemoteContentPluginOptions } from "./types"
++
++/**
++ * Name of the file, written in outDir, that lists the files this plugin
++ * instance wrote. Cleanup relies on it, so renamed files are cleaned up too.
++ */
++const manifestName = (name: string) => `.remote-content-${name}.json`
++
++/**
++ * Turn whatever axios returned into something writeFileSync accepts.
++ * Strings and binary data are written as-is; anything else (a parsed JSON
++ * document, when the caller overrides responseType) is serialized back.
++ */
++function toWritable(data: unknown): string | Buffer | Uint8Array {
++    if (typeof data === "string" || Buffer.isBuffer(data) || data instanceof Uint8Array) {
++        return data
+     }
+-
+-    let fn
+-    if ((fn = called?.filename) && typeof fn === "string") {
+-        newIdent = fn
++    if (data instanceof ArrayBuffer) {
++        return Buffer.from(data)
+     }
+-
+-    return { content, newIdent }
++    return JSON.stringify(data, null, 2) + "\n"
+ }
+ 
+ // noinspection JSUnusedGlobalSymbols
+@@ -42,9 +38,11 @@ export default async function pluginRemoteContent(
+         outDir,
+         documents,
+         noRuntimeDownloads = false,
+-        performCleanup = true,
++        // Files downloaded with the CLI are usually committed: never delete
++        // them after a build unless explicitly asked to.
++        performCleanup = !noRuntimeDownloads,
+         requestConfig = {},
+-        modifyContent = () => undefined
++        modifyContent = () => undefined,
+     } = options
+ 
+     if (!name) {
+@@ -71,58 +69,109 @@ export default async function pluginRemoteContent(
+         )
+     }
+ 
+-    async function findRemoteItems(): Promise<Fetchable[]> {
+-        const a: Fetchable[] = []
+-
+-        const resolvedDocs =
+-            typeof documents === "function"
+-                ? documents()
+-                : ((await documents) as string[])
++    const targetDirectory = resolve(context.siteDir, outDir)
++    const manifestPath = join(targetDirectory, manifestName(name))
+ 
+-        for (const id of resolvedDocs) {
+-            a.push({ id })
++    /** Resolve a path inside outDir, refusing anything that escapes it. */
++    function inTarget(file: string): string {
++        const full = resolve(targetDirectory, file)
++        if (full !== targetDirectory && !full.startsWith(targetDirectory + sep)) {
++            throw new Error(
++                `Refusing to write "${file}": it resolves outside of outDir (${outDir}).`
++            )
+         }
++        return full
++    }
+ 
+-        return a
++    async function findRemoteItems(): Promise<Fetchable[]> {
++        // documents can be an array, a promise, or a (possibly async) function
++        const resolvedDocs = await (typeof documents === "function"
++            ? documents()
++            : documents)
++
++        return resolvedDocs.map((id) => ({ id }))
+     }
+ 
+-    async function getTargetDirectory(): Promise<string> {
+-        const returnValue = join(context.siteDir, outDir)
++    async function resolveRequestConfig(): Promise<Partial<AxiosRequestConfig>> {
++        // A function is not serialized into the client bundle, so secrets
++        // such as an Authorization header stay on the build machine.
++        return typeof requestConfig === "function"
++            ? await requestConfig()
++            : requestConfig
++    }
+ 
+-        if (!existsSync(returnValue)) {
+-            mkdirSync(returnValue, { recursive: true })
++    function readManifest(): string[] {
++        try {
++            return JSON.parse(readFileSync(manifestPath, "utf8")).files ?? []
++        } catch {
++            return []
+         }
+-
+-        return returnValue
+     }
+ 
+     async function fetchContent(): Promise<void> {
+-        const c = await findRemoteItems()
+-
+-        for (const { id } of c) {
+-            let { content, newIdent } = await runModifications(sourceBaseUrl, id, requestConfig, modifyContent)
+-
+-            const checkIdent = newIdent.split("/").filter((seg) => seg !== "")
+-            checkIdent.pop()
+-
+-            // if we are outputting to a subdirectory, make sure it exists
+-            if (checkIdent.length > 0) {
+-                mkdirSync(
+-                    join(await getTargetDirectory(), checkIdent.join("/")),
+-                    { recursive: true }
++        const items = await findRemoteItems()
++        const config = await resolveRequestConfig()
++        const previous = readManifest()
++        const written: string[] = []
++
++        mkdirSync(targetDirectory, { recursive: true })
++
++        for (const { id } of items) {
++            let content: unknown
++            try {
++                content = (
++                    await axios({
++                        baseURL: sourceBaseUrl,
++                        url: id,
++                        // Keep files as they are: no automatic JSON parsing.
++                        responseType: "text",
++                        ...config,
++                    })
++                ).data
++            } catch (error) {
++                throw new Error(
++                    `[${name}] Failed to download "${id}" from ${sourceBaseUrl}: ${(error as Error).message}`
+                 )
+             }
+ 
+-            writeFileSync(join(await getTargetDirectory(), newIdent), content)
++            let filename = id
++            const modified = await modifyContent(id, content as string)
++            if (typeof modified?.content === "string") {
++                content = modified.content
++            }
++            if (typeof modified?.filename === "string") {
++                filename = modified.filename
++            }
++
++            const outFile = inTarget(filename)
++            mkdirSync(dirname(outFile), { recursive: true })
++            writeFileSync(outFile, toWritable(content))
++            written.push(relative(targetDirectory, outFile))
++        }
++
++        // Remove the files written by a previous run that are gone now, so
++        // the output always mirrors the current list of documents.
++        for (const stale of previous.filter((f) => !written.includes(f))) {
++            delFile(inTarget(stale))
+         }
++
++        writeFileSync(
++            manifestPath,
++            JSON.stringify({ files: written }, null, 2) + "\n"
++        )
+     }
+ 
+     async function cleanContent(): Promise<void> {
+-        const c = await findRemoteItems()
+-
+-        for (const { id } of c) {
+-            delFile(join(await getTargetDirectory(), id))
++        const files = existsSync(manifestPath)
++            ? readManifest()
++            : // No manifest (content downloaded by an older version): fall
++              // back to the document ids.
++              (await findRemoteItems()).map(({ id }) => id)
++
++        for (const file of files) {
++            delFile(inTarget(file))
+         }
++        delFile(manifestPath)
+     }
+ 
+     if (!noRuntimeDownloads) {
+@@ -149,7 +198,7 @@ export default async function pluginRemoteContent(
+                     `Removes the local copy of the remote ${name} data.`
+                 )
+                 .action(async () => await timeIt(`clear ${name}`, cleanContent))
+-        }
++        },
+     }
+ }
+ 
+diff --git a/src/types.ts b/src/types.ts
+index 0eb9930..ee61ae9 100644
+--- a/src/types.ts
++++ b/src/types.ts
+@@ -10,7 +10,10 @@ import { AxiosRequestConfig } from "axios"
+ export type ModifyContentFunction = (
+     filename: string,
+     content: string
+-) => { filename?: string; content?: string } | undefined
++) =>
++    | { filename?: string; content?: string }
++    | undefined
++    | Promise<{ filename?: string; content?: string } | undefined>
+ 
+ /**
+  * The plugin's options.
+@@ -18,6 +21,8 @@ export type ModifyContentFunction = (
+ export interface RemoteContentPluginOptions {
+     /**
+      * Delete local content after everything?
++     * Defaults to true, or to false when noRuntimeDownloads is true (content
++     * downloaded with the CLI is usually committed and must survive builds).
+      */
+     performCleanup?: boolean
+ 
+@@ -45,14 +50,23 @@ export interface RemoteContentPluginOptions {
+      * Specify the document paths from the sourceBaseUrl
+      * in a string array or function that returns a string array.
+      */
+-    documents: string[] | Promise<string[]> | (() => string[])
++    documents:
++        | string[]
++        | Promise<string[]>
++        | (() => string[] | Promise<string[]>)
+ 
+     /**
+      * Additional options for Axios.
+      *
++     * Pass a function to keep secrets (e.g. an Authorization header) out of
++     * the client bundle: Docusaurus serializes plain option values into the
++     * site's JavaScript, but not functions.
++     *
+      * @see https://axios-http.com/docs/req_config
+      */
+-    requestConfig?: Partial<AxiosRequestConfig>
++    requestConfig?:
++        | Partial<AxiosRequestConfig>
++        | (() => Partial<AxiosRequestConfig> | Promise<Partial<AxiosRequestConfig>>)
+ 
+     /**
+      * An optional function that modifies the file name and content of a downloaded file.
+-- 
+2.43.0
+
