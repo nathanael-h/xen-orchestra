@@ -1,0 +1,34 @@
+# DRAFT, optional: to put in a tool repository as .github/workflows/notify-xo-docs.yml
+#
+# Push model: when the reference pages change on the default branch, ask the
+# xen-orchestra repository to run its "Sync external docs" workflow right away,
+# instead of waiting for the daily schedule.
+#
+# Needs a GitHub App installed on vatesfr/xen-orchestra with the
+# "Contents: read & write" permission (required by repository_dispatch);
+# store its id and private key as XO_DOCS_APP_ID / XO_DOCS_APP_PRIVATE_KEY.
+name: Notify XO docs
+
+on:
+  push:
+    branches: [main]
+    paths: ['docs/references/**']
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-github-app-token@v3
+        id: token
+        with:
+          app-id: ${{ secrets.XO_DOCS_APP_ID }}
+          private-key: ${{ secrets.XO_DOCS_APP_PRIVATE_KEY }}
+          owner: vatesfr
+          repositories: xen-orchestra
+      - run: |
+          gh api repos/vatesfr/xen-orchestra/dispatches \
+            -f event_type=external-docs-updated \
+            -f "client_payload[repo]=${{ github.repository }}" \
+            -f "client_payload[sha]=${{ github.sha }}"
+        env:
+          GH_TOKEN: ${{ steps.token.outputs.token }}

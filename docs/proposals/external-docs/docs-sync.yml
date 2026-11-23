@@ -1,0 +1,51 @@
+# DRAFT, not active: to enable, copy to .github/workflows/docs-sync.yml
+#
+# Keeps the pages listed in docs/external-docs.json in sync with their source
+# repositories, by opening (or updating) a single pull request on this repo.
+# The docs build runs on that PR like on any other, so a broken link or an
+# MDX error upstream is caught before it reaches master.
+name: Sync external docs
+
+on:
+  schedule:
+    - cron: '17 5 * * 1-5' # weekdays, early morning UTC
+  workflow_dispatch:
+  # Optional push model: a tool repository can trigger a sync right after a
+  # docs change, by sending a repository_dispatch event of this type.
+  repository_dispatch:
+    types: [external-docs-updated]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: docs-sync
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      - name: Fetch the pages from their source repositories
+        working-directory: docs
+        run: node scripts/sync-external-docs.mjs
+
+      - name: Open or update the sync pull request
+        uses: peter-evans/create-pull-request@v8
+        with:
+          branch: bot/external-docs-sync
+          delete-branch: true
+          commit-message: 'docs: sync external reference pages'
+          title: 'docs: sync external reference pages'
+          body: |
+            Automatic sync of the pages listed in `docs/external-docs.json`.
+            Review the diff like any docs change: the docs build runs on this PR.
+          labels: documentation
+          add-paths: docs/docs

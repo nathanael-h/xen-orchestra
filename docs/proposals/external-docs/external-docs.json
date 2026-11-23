@@ -1,0 +1,13 @@
+{
+  "$comment": "Markdown pages synced from tool repositories. Do not edit the synced files: edit them in their source repository. Run `node proposals/external-docs/sync-external-docs.mjs` from docs/ to refresh.",
+  "sources": [
+    {
+      "repo": "vatesfr/xenorchestra-csi-driver",
+      "ref": "main",
+      "from": "docs/references",
+      "to": "docs/kubernetes/csi-driver-reference",
+      "label": "CSI driver: technical reference",
+      "position": 3
+    }
+  ]
+}
